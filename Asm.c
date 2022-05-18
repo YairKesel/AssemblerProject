@@ -8,8 +8,8 @@
 #define MAX_LABEL 50
 #define MAX_MEM 4096
 //project definitions
-char* op_codes_names[] = { "add","sub","mul","and","or","xor","sll","sra","srl","beq","bne","blt","bgt","ble","bge","jal","lw","sw","reti","in","out","halt" };
-char* reg_names[] = { "$zero","$imm","$v0","$a0","$a1","$a2","$a3","$t0","$t1","$t2","$s0","$s1","$s2","$gp","$sp","$ra" };
+char* op_codes_names[22][2] = { {"add","0"}, {"sub","1"}, {"mul","2"},{"and","3"},{"or","4"},{"xor","5"},{"sll","6"},{"sra","7"}, {"srl","8"}, {"beq","9"}, {"bne","10"}, {"blt","11"}, {"bgt","12"}, {"ble","13"}, {"bge","14"}, {"jal","15"},{"lw","16"}, {"sw","17"}, {"reti","18"}, {"in","19"}, {"out","20"}, {"halt","21"} };
+char* reg_names[16][2] = { {"$zero","0"},{"$imm","1"},{"$v0","2"},{"$a0","3"},{"$a1","4"},{"$a2","5"},{"$a3","6"},{"$t0","7"},{"$t1","8"},{"$t2","9"},{"$s0","10"},{"$s1","11"},{"$s2","12"},{"$gp","13"},{"$sp","14"},{"$ra","15"} };
 //Alot of functions for parsing!
 char* wipe_spaces(char* str)  //cleans a string from spare spaces and remove comments (cleans the right section to a # sign)
 {
@@ -192,19 +192,75 @@ int is_only_label(char *str)          //function to check if a line is only labe
 	}
 	return return_flag;
 }
+int is_i_type(char** array)										    //function the checks if a command is i type. if it does it returns the position of the string in the array.
+{
+	int placement = 0, i = 0, cmp = 0;
+	char** t;
+	t = array;
+	t+=2;
+	//printf("%s", *t);
+	
+	cmp = strcmp(*t, reg_names[1][0]);
+	if(cmp==0)
+	{
+		placement = 2;
+	}
+	t++;
+	cmp = strcmp(*t, reg_names[1][0]);
+	if (cmp == 0)
+	{
+		placement = 3;
+	}
+	return placement;
+	
+	//t++;
+	//printf("%s\n", *t);
+	return i;
+}
 void main(int argc, char* argv[])
 {
-	int i = 0;
-	int only_label=0;							//flag for checking if a line is only a LABEL 
+	FILE* asmcode;
+	FILE* output_file;
+	int i = 0,j=0;
+	int only_label=0, i_type_placement=0;												//flag for checking if a line is only a LABEL 
 	char* str_check, * label, * no_label;
 	char** command_parts;
+	char** holder;
 	char* wiped_str;
-	char label_table[MAX_MEM][1]; //a table that will hold a label-line number relation
+	char label_table[MAX_MEM][1];									//a table that will hold a label-line number relation
 	str_check = (char*)malloc(MAX_STRLEN * sizeof(char));
-	int line_countr; // an intger that will follow the line number of the file (so we can place the line number of a label
-					 // in the immidiate sector of other jump 
-	fgets(str_check, (MAX_STRLEN) * sizeof(char), stdin);
-	//printf("%s", str_check);
+	int line_countr;												// an intger that will follow the line number of the file (so we can place the line number of a label
+																    // in the immidiate sector of other jump 
+	/*
+	output_file = fopen(argv[2],"w");
+	asmcode = fopen(argv[1], "r");
+	while (asmcode != NULL)
+	{
+		str_check=fgets(str_check, MAX_STRLEN, asmcode);
+		if (str_check != NULL)
+		{
+			printf("%s\n", str_check);
+			fprintf(output_file, "%s", str_check);
+		}
+		else
+		{
+			break;
+		}
+	}
+	fclose(asmcode);
+	fclose(output_file);
+	for (i = 0; i < 22; i++)
+	{
+		printf("%s - %s\n", op_codes_names[i][0], op_codes_names[i][1]);
+	}
+	printf("\n\n\n");
+	for (j = 0; j < 16; j++)
+	{
+		printf("%s - %s\n",reg_names[j][0], reg_names[j][1]);
+	}
+	*/
+
+	str_check = fgets(str_check, MAX_STRLEN, stdin);
 	only_label = is_only_label(str_check);
 	if (only_label == 1)
 	{
@@ -235,14 +291,15 @@ void main(int argc, char* argv[])
 		wiped_str = wipe_spaces(str_check);
 		command_parts = parsing_comm(wiped_str);
 	}
-	
-	for (i = 0; i < 5; i++)						// test loop for contents of the array 
+	holder = command_parts;
+	for (i = 0; i < 5; i++)										// test loop for contents of the array 
 	{
-		//printf("here\n");
-		printf("%s\n", *command_parts);
-		command_parts++;
-		//printf("found psik\n");
+		printf("%s\n", *holder);
+		holder++;
 	}
+	i_type_placement = is_i_type(command_parts);
+	printf("%d",i_type_placement);
+
 	//free(str_check);
 	//free(label);
 	/*
