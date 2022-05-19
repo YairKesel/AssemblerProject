@@ -298,8 +298,8 @@ void main(int argc, char* argv[])
 		holder++;
 	}
 	i_type_placement = is_i_type(command_parts);
-	printf("%d",i_type_placement);
-
+	printf("%d\n",i_type_placement);
+	printf("%d", atoi(reg_names[4][1]));
 	//free(str_check);
 	//free(label);
 	/*
