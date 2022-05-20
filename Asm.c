@@ -150,7 +150,7 @@ char** parsing_comm(char* str) //** this function assumes she is getting a 'clea
 		if (* t != ',')                    //44 is the ASCII value of psik
 		{
 			counter++;
-			**comm_parts = *t;
+			(** comm_parts) = *t;
 			//printf("%c ", **comm_parts);
 			(*comm_parts)++;
 			t++;
@@ -337,9 +337,17 @@ int is_word(char* str)										//this function checks if a command is the speci
 	int flag = 0;
 	t = str;
 	word_pointer = word_code;
+
 	while (*word_pointer != '\0')
 	{
-		if (*word_pointer == *t)
+		if (isspace(*t) != 0)
+		{
+			while (isspace(*t) != 0)
+			{
+				t++;
+			}
+		}
+		else if (*word_pointer == *t)
 		{
 			flag = 1;
 			t++;
@@ -353,28 +361,187 @@ int is_word(char* str)										//this function checks if a command is the speci
 	}
 	return flag;
 }
+char** word_parsing(char* str)										//we call this function if the function is_word return 1- this fucntion will allocate memory for the adress and constant we want to put in memory
+{															// we will use a global array to put the words asside in first run and then write them in the apropriate place in the second run!
+	char** word_parts;
+	char** word_parts_holder;
+	char* t;
+	t = str;
+	int i = 0,counter=0,flag=0;
+	word_parts = malloc(3 * sizeof(char*));
+	word_parts_holder = word_parts;
+	for (i = 0; i < 3; i++)
+	{
+		*word_parts = calloc(1, MAX_STRLEN * sizeof(char));
+		word_parts++;
+	}
+	word_parts = word_parts_holder;
+	if (isspace(*t) != 0)
+	{
+		while (isspace(*t) != 0)
+		{
+			t++;
+		}
+	}
+	while (*t != '\0')                                          //loop that clenas excess spaces in the beggiinng
+	{
+		if (isspace(*t) == 0)                                  //part of the string which is not spaces
+		{
+			(**word_parts) = *t;
+			t++;
+			(* word_parts)++;
+			counter++;
+		}
+		else   //isspace(*t)!=0									we have met a space in the string
+		{
+			
+			while (isspace(*t) != 0)							  // we moving forward in the string to ignore spaces between the relevent fields (as long we keep meeting spaces
+			{
+				t++;
+			}
+			(* word_parts)-= counter;
+			word_parts++;
+			counter = 0;
+		}
+		
+	}
+	word_parts = word_parts_holder;
+	return word_parts;
+}
 void main(int argc, char* argv[])
 {
 	FILE* asmcode;
 	FILE* output_file;
 	int i = 0,j=0;
 	int dec = 0;
-	int is_line_word = 0;
+	int is_line_is_word = 0;
 	char* hex;
 	int only_label = 0, i_type_placement = 0, is_blank = 0, is_hexa = 0;												//flag for checking if a line is only a LABEL 
 	char* str_check, * label, * no_label;
 	char** command_parts;
 	char** holder;
+	char** word_parts;
 	char* wiped_str;
-	char* label_table[MAX_MEM][2];									//a table that will hold a label-line number relation
+	char* label_table[MAX_MEM] = { 0 };									//a table that will hold a label-line number relation
+	int words_table[MAX_MEM] = { 0 };										//a table that every index is a row in the file , every index contains a value the forced to be written!
 	str_check = (char*)malloc(MAX_STRLEN * sizeof(char));
 	int line_counter=0;												// an intger that will follow the line number of the file (so we can place the line number of a label
-		
-				   												    // in the immidiate sector of other jump 
+
+
 	
-	str_check = fgets(str_check, MAX_STRLEN, stdin);
-	is_line_word = is_word(str_check);
-	printf("%d", is_line_word);
+	//FIRST RUN
+	output_file = fopen(argv[2], "w");
+	asmcode = fopen(argv[1], "r");
+	while (asmcode != NULL)
+	{
+		str_check = fgets(str_check, MAX_STRLEN, asmcode);			// were holding a line from the the file
+		
+		if (str_check != NULL)										//safety check for for NULL line
+		{
+			is_blank = is_blank_line(str_check);					//checking if line is blank.
+			if (is_blank == 0)									    //line is not blank!
+			{
+				is_line_is_word = is_word(str_check);				// we check if a line is the special command .word
+				//printf("%d", is_line_is_word);
+				if (is_line_is_word == 1)
+				{
+					word_parts = word_parsing(str_check);
+					words_table[atoi(word_parts[1])] = atoi(word_parts[2]);	//we put the word value to be written as integer!
+					line_counter++;
+					continue;												//we itrate to the next line! (we save word details)
+				}
+				else  //this line is not a word
+				{
+					only_label = is_only_label(str_check);           // we check if the next line is made out of label only
+					if (only_label == 1)
+					{
+						label_table[line_counter] = Label_Identifier(str_check);  //we put the label in the index of the line we found it
+						continue;												  //we continue to next line without increasing line_counter cause this line contains only a label!
+					}
+					else  //the line is not only a label
+					{
+						label = Label_Identifier(str_check);
+						if (label == NULL)
+						{
+
+							wiped_str = wipe_spaces(str_check);
+							printf("%s\n", wiped_str);
+							command_parts = parsing_comm(wiped_str);
+							line_counter++;
+						}
+						else //label!=NULL we do have a label in this line
+						{
+							label_table[line_counter] = label;
+							printf("%s", label);
+							no_label = label_removal(str_check);
+							wiped_str = wipe_spaces(no_label);
+							printf("%s\n", wiped_str);
+							command_parts = parsing_comm(wiped_str);
+							line_counter++;
+						}
+					}
+				}
+
+			}
+			else												//line is indeed blank!
+			{
+				continue;
+				//printf("here a blank_line");
+				//fprintf(output_file, "%s\n", "here a blank_line");
+			}
+
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	printf("%d\n", line_counter);
+	for (i = 0; i < MAX_MEM ; i++)
+	{
+		if(label_table[i]!=0)
+		{
+			printf("Line# %d Label - %s\n", i, label_table[i]);
+		}
+		
+		else if (words_table[i] != 0)
+		{
+			printf("Write the value %d in adress %d", words_table[i], i);
+		}
+		
+	}
+	fclose(asmcode);
+	fclose(output_file);
+	
+														
+																	
+																	
+																	
+																	
+																	
+																	
+	
+	
+	//str_check = fgets(str_check, MAX_STRLEN, stdin);
+	//label = Label_Identifier(str_check);
+	//no_label = label_removal(str_check);
+	//wiped_str = wipe_spaces(str_check);
+	//printf("%s\n", label);
+	//printf("%s\n", no_label);
+	//printf("%s\n", wiped_str);
+	//label_table[0] = Label_Identifier(str_check);
+	//printf("%s", label_table[0]);
+	//is_line_is_word = is_word(str_check);
+	//printf("%d\n", is_line_is_word);
+	//word_parts = word_parsing(str_check);
+	//printf("%s", word_parts[1]);
+	/*
+	for (i = 0; i < 3; i++)
+	{
+		printf("%s\n", *word_parts);
+		word_parts++;
+	}
 	/*
 	is_hexa = is_hex(str_check);
 	if (is_hexa == 1)
@@ -387,6 +554,7 @@ void main(int argc, char* argv[])
 		printf("not_hexa");
 	}
 	*/
+
 	//scanf("%d", &dec);
 	//hex = dec_to_hex(dec);
 	//printf("%05x", dec);                                               //importent - format of printing decimal number in hexa with width of 5 numbers!
