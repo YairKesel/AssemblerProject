@@ -686,7 +686,7 @@ void main(int argc, char* argv[])
 				is_line_is_word = is_word(str_check);
 				if (words_table[line_counter] != 0)					//we check if there is a word to write in the current line!
 				{
-					fprintf(output_file, "%X\n", words_table[line_counter] & 0xfffff);		//if there is a word we write in hexadecimal format and keep going on
+					fprintf(output_file, "%05X\n", words_table[line_counter] & 0xfffff);		//if there is a word we write in hexadecimal format and keep going on
 					//printf("%X", words_table[line_counter] & 0xfffff);
 					line_counter++;
 											//we itrate to the next line! (we save word details)
