@@ -483,7 +483,7 @@ char** word_parsing(char* str)										//we call this function if the function 
 		else   //isspace(*t)!=0									we have met a space in the string
 		{
 			
-			while (isspace(*t) != 0)							  // we moving forward in the string to ignore spaces between the relevent fields (as long we keep meeting spaces
+			while (isspace(*t) != 0)							  // we are moving forward in the string to ignore spaces between the relevent fields (as long we keep meeting spaces
 			{
 				t++;
 			}
@@ -507,6 +507,7 @@ int is_label_imm_func(char* str)
 	}
 	return flag;
 }
+
 void main(int argc, char* argv[])
 {
 	FILE* asmcode;
@@ -551,7 +552,7 @@ void main(int argc, char* argv[])
 			if (is_blank == 0)									    //line is not blank!
 			{
 				is_line_is_word = is_word(str_check);				// we check if a line is the special command .word
-				printf("%d\n", is_line_is_word);
+				printf("is the line a word? %d\n", is_line_is_word);
 				if (is_line_is_word == 1)
 				{
 					word_parts = word_parsing(str_check);
@@ -567,7 +568,7 @@ void main(int argc, char* argv[])
 						free(word_parts[k]);
 					}
 					free(word_parts);
-					line_counter++;
+					//line_counter++;
 					is_line_is_word = 0;
 																//we itrate to the next line! (we save word details)
 				}
@@ -586,7 +587,7 @@ void main(int argc, char* argv[])
 						{
 
 							wiped_str = wipe_spaces(str_check);
-							printf("%s", wiped_str);
+							printf("the wiped str is %s", wiped_str);
 							command_parts = parsing_comm(wiped_str);
 							i_type_flag = is_i_type(command_parts);
 							printf("   is i type ? - %d\n", i_type_flag);
@@ -609,10 +610,10 @@ void main(int argc, char* argv[])
 						else //label!=NULL we do have a label in this line
 						{
 							label_table[line_counter] = label;
-							printf("%s", label);
+							printf("the label is %s", label);
 							no_label = label_removal(str_check);
 							wiped_str = wipe_spaces(no_label);
-							printf("%s", wiped_str);
+							printf("the wiped str %s", wiped_str);
 							command_parts = parsing_comm(wiped_str);
 							i_type_flag = is_i_type(command_parts);
 							printf("   is i type ? - %d\n", i_type_flag);
@@ -649,7 +650,7 @@ void main(int argc, char* argv[])
 		}
 		//memset(str_check, 0, MAX_STRLEN);
 	}
-	printf("%d\n", line_counter);
+	printf("current line counter is - %d\n", line_counter);
 	for (i = 0; i < MAX_MEM ; i++)
 	{
 		if(label_table[i]!=0)
@@ -667,17 +668,18 @@ void main(int argc, char* argv[])
 	{
 		final_line = line_counter;
 	}
-	printf("%d", final_line);
+	printf("final line is - %d\n", final_line);
 	//free(str_check);
 	fclose(asmcode);
 	
-	
+	printf("***************   SECOND RUN NOW  *********************\n");
 	//SECOND RUN
 	line_counter = 0;
 	output_file = fopen(argv[2], "w");
 	asm_2nd_run = fopen(argv[1], "r");
 	while (fgets(str_check, MAX_STRLEN, asm_2nd_run)!=NULL)
 	{														// were holding a line from the the file
+		printf("Current line is - %d\n", line_counter);
 		if (str_check != NULL)										//safety check for for NULL line
 		{
 			is_blank = is_blank_line(str_check);					//checking if line is blank.
@@ -709,7 +711,7 @@ void main(int argc, char* argv[])
 						{
 
 							wiped_str = wipe_spaces(str_check);
-							printf("%s\n", wiped_str);
+							printf("the wiped str - %s\n", wiped_str);
 							command_parts = parsing_comm(wiped_str);
 							i_type_flag = is_i_type(command_parts);
 							//printf("	is i type ? - %d\n", i_type_flag);
@@ -717,7 +719,7 @@ void main(int argc, char* argv[])
 							{
 								if (strcmp(command_parts[0],op_codes_names[op][0]) == 0)
 								{
-									printf("%d\n", op);
+									printf("op idx - %d\n", op);
 									break;
 									
 								}
@@ -726,7 +728,7 @@ void main(int argc, char* argv[])
 							{
 								if (strcmp(command_parts[1], reg_names[rd][0]) == 0)
 								{
-									printf("%d\n", rd);
+									printf("rd idx - %d\n", rd);
 									break;
 								}
 							}
@@ -734,7 +736,7 @@ void main(int argc, char* argv[])
 							{
 								if (strcmp(command_parts[2], reg_names[rs][0]) == 0)
 								{
-									printf("%d\n", rs);
+									printf("rs idx - %d\n", rs);
 									break;
 								}
 							}
@@ -742,16 +744,16 @@ void main(int argc, char* argv[])
 							{
 								if (strcmp(command_parts[3], reg_names[rt][0]) == 0)
 								{
-									printf("%d\n", rt);
+									printf("rt idx - %d\n", rt);
 									break;
 								}
 							}
 							if (i_type_flag == 1)													//print to file when in type command
 							{
 								printf("i type flag %d\n", i_type_flag);
-								printf("%s%s%s%s\n", op_codes_names[op][2], reg_names[rd][2], reg_names[rs][2], reg_names[rt][2]);
+								printf("KIDUD - %s%s%s%s\n", op_codes_names[op][2], reg_names[rd][2], reg_names[rs][2], reg_names[rt][2]);
 								fprintf(output_file, "%s%s%s%s\n", op_codes_names[op][2], reg_names[rd][2], reg_names[rs][2], reg_names[rt][2]);
-								printf("%s\n", command_parts[4]);
+								printf("command_parts[4] is - %s\n", command_parts[4]);
 								is_hexa = is_hex(command_parts[4]);
 								printf("is hexa? %d\n", is_hexa);
 								if (is_hexa == 1)													//we check if the immidate is in hexa format
@@ -763,7 +765,7 @@ void main(int argc, char* argv[])
 								{
 									is_label_imm = is_label_imm_func(command_parts[4]);
 									printf("is imm label? %d\n", is_label_imm);
-									if (is_label_imm != 0)		    //we check if the imm value is a LABEL						
+									if (is_label_imm == 1)		    //we check if the imm value is a LABEL						
 									{
 										for (j = 0; j < MAX_MEM; j++)
 										{
@@ -777,8 +779,9 @@ void main(int argc, char* argv[])
 												printf("str_cmp =%d\n", str_cmp);
 												if (str_cmp == 0)
 												{
-													//printf("here\n");
-													//printf("j = %d\n", j);
+													
+													printf("the label found in label table indx - %d\n", j);
+													printf("IMM KIDUD - %05X\n", (j & 0xfffff));
 													fprintf(output_file, "%05X\n", (j & 0xfffff));
 													break;
 												}
@@ -787,9 +790,9 @@ void main(int argc, char* argv[])
 									}
 									else   //command_parts[4] is a decimal value
 									{
-										printf("FUCKINGFUCKINGFUCKINGFUCKINGFUCKINGFUCKINGFUCKING %s\n", command_parts[4]);
+										printf("command_parts[4] in string mode -  %s\n", command_parts[4]);
 										atoi_idx = atoi(command_parts[4]);
-										printf("PUSSYPUSSYPUSSYPUSSY %d\n", atoi_idx);
+										printf("command_parts[4] in after atoi - %d\n", atoi_idx);
 										if (atoi_idx == 0)
 										{
 
@@ -797,6 +800,7 @@ void main(int argc, char* argv[])
 										}
 										else
 										{
+											printf("IMM KIDUD - %05X\n", (atoi(command_parts[4])) & 0xfffff);
 											fprintf(output_file, "%05X\n", (atoi(command_parts[4])) & 0xfffff);
 										}
 									}
@@ -893,17 +897,18 @@ void main(int argc, char* argv[])
 												printf("str_cmp =%d\n", str_cmp);
 												if (str_cmp == 0)
 												{
-													printf("here\n");
-													printf("j = %d\n", j);
+													
+													printf("the label found in label table indx - %d\n", j);
+													printf("IMM KIDUD - %05X\n", (j & 0xfffff));
 													fprintf(output_file, "%05X\n", j & 0xfffff);
 													break;
 												}
 											}
 										}
 									}
-									printf("FUCKINGFUCKINGFUCKINGFUCKINGFUCKINGFUCKINGFUCKING %s\n", command_parts[4]);
+									printf("command_parts[4] in string mode - %s\n", command_parts[4]);
 									atoi_idx = atoi(command_parts[4]);
-									printf("PUSSYPUSSYPUSSYPUSSY %d\n", atoi_idx);
+									printf("command_parts[4] after atoi - %d\n", atoi_idx);
 									if (atoi_idx == 0)
 									{
 										printf("atoi is zero!!!!! fking zeroooo");
@@ -911,6 +916,7 @@ void main(int argc, char* argv[])
 									}
 									else
 									{
+										printf("IMM KIDUD - %05X\n", (atoi(command_parts[4])) & 0xfffff);
 										fprintf(output_file, "%05X\n", (atoi(command_parts[4])) & 0xfffff);
 									}
 									for (k = 0; k < 5; k++)
